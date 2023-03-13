@@ -38,7 +38,7 @@ void initializeClientSockets(s_server *server)
 
 void createSocketFD(s_server *server)
 {
-    if ((server->socketFD = socket(AF_INET, SOCK_STREAM, 0) < 0))
+   	if ((server->socketFD = socket(AF_INET, SOCK_STREAM, 0)) < 0)/* if ((server->socketFD = socket(AF_INET, SOCK_STREAM, 0) < 0)) */
     {
         perror("Failed to create socket\n");
         exit(-1);
@@ -51,7 +51,7 @@ void setServerSockOption(s_server *server)
 {
     server->option = 1;
 
-    if (setsockopt(server->socketFD, SOL_SOCKET, SO_REUSEADDR, (char *)&(server->option), sizeof(server->option) < 0))
+    if (setsockopt(server->socketFD, SOL_SOCKET, SO_REUSEADDR, (char *)&(server->option), sizeof(server->option)) < 0)/* if (setsockopt(server->socketFD, SOL_SOCKET, SO_REUSEADDR, (char *)&(server->option), sizeof(server->option) < 0)) */
     {
         perror("Failed to set server option\n");
         exit(-1);
@@ -69,7 +69,7 @@ void createSocketType(s_server *server, char *port)
 void bindSocket(s_server *server)
 {
     // printf("%ld\n", sizeof(server->address));
-    if (bind(server->socketFD, (struct sockaddr *)&(server->address), sizeof(&server->address)) < 0)
+   	if (bind(server->socketFD, (struct sockaddr *)&(server->address), sizeof(server->address)) < 0)/* if (bind(server->socketFD, (struct sockaddr *)&(server->address), sizeof(&server->address)) < 0) */
     {
         perror("Failed to bind sockets\n");
         exit(-1);
@@ -104,25 +104,6 @@ void startListening(s_server *server)
     }
 }
 
-void waitForActivity(s_server *server)
-{
-    server->activity = select(server->max_sd + 1, &(server->readFds), NULL, NULL, NULL);
-
-    if ((server->activity < 0) && (errno != EINTR))
-    {
-        perror("Failed in selection\n");
-    }
-    server->addrLen = sizeof(server->address);
-    if (FD_ISSET(server->socketFD, &(server->readFds)))
-    {
-        if ((server->new_socketFD = accept(server->socketFD, (struct sockaddr *)&server->address, (socklen_t *)&(server->addrLen))) < 0)
-        {
-            perror("Accept\n");
-            exit(-1);
-        }
-    }
-}
-
 void addNewSocket(s_server *server)
 {
     for (server->nb = 0; server->nb < MAX_CLIENTS; server->nb++)
@@ -135,11 +116,32 @@ void addNewSocket(s_server *server)
         }
     }
 }
+void waitForActivity(s_server *server)
+{
+    server->activity = select(server->max_sd + 1, &(server->readFds), NULL, NULL, NULL);
+
+    if ((server->activity < 0) && (errno != EINTR))
+    {
+        perror("Failed in selection\n");
+    }
+    server->addrLen = sizeof(server->address);
+    if (FD_ISSET(server->socketFD, &(server->readFds)))
+	{
+   		 if ((server->new_socketFD = accept(server->socketFD, (struct sockaddr *)&server->address, (socklen_t *)&(server->addrLen))) < 0)
+    	{
+        	perror("Accept\n");
+       		 exit(-1);
+   	 	}
+    	addNewSocket(server);
+	}
+}
+
 
 void recieveCommand(s_server *server)
 {
     if (FD_ISSET(server->sd, &(server->readFds)))
     {
+		printf("ok\n");
         if ((server->valReaded = recv(server->sd, server->buffer, BUFFER_SIZE, 0)) == 0)
         {
             getpeername(server->sd, (struct sockaddr *)&(server->address), (socklen_t *)&(server->addrLen));
