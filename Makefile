@@ -1,7 +1,7 @@
 NAME1	= client
 NAME2	= server
-SRCS1	= client.c get_next_line.c get_next_line_utils.c
-SRCS2 = server.c
+SRCS1	= client.c get_next_line.c get_next_line_utils.c handling.c
+SRCS2 = server.c handling.c
 OBJS1	= $(SRCS1:.c=.o)
 OBJS2	= $(SRCS2:.c=.o)
 CC		= gcc

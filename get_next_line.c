@@ -60,6 +60,7 @@ char	*ft_read_and_save(int fd, char *save)
 	read_bytes = 1;
 	while (!ft_strchr(save, '\n') && read_bytes != 0)
 	{
+		write(1, "<Client>: ", 10);
 		read_bytes = read(fd, buff, BUFFER_SIZE);
 		if (read_bytes == -1)
 		{
