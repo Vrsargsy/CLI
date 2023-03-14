@@ -10,6 +10,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/time.h>
+#include <poll.h>
+#include <fcntl.h>
 
 # define MAX_CLIENTS 5
 # define BUFFER_SIZE 1024
@@ -19,12 +21,16 @@ typedef struct t_server
 {
     int                 master_socket;
     struct sockaddr_in  addr;
+    struct sockaddr_in  cl_addr;
+    socklen_t           cl_addrLen;
     socklen_t           addrLen;
+
+    struct pollfd       poll_fds[MAX_CLIENTS + 1];
     int                 clients[MAX_CLIENTS];
     ssize_t             valRead[MAX_CLIENTS];
     char                buffer[BUFFER_SIZE + 1];
     int                 option;
-    fd_set              readfds;
+    int                 clientID;
 } s_server;
 
 typedef struct t_client
@@ -41,8 +47,10 @@ void    initServerStructure(s_server *server, char *port);
 void    initClientStructure(s_client *client, char *address, char *port);
 void    Listen(int sockfd, int backlog);
 int     Accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
-ssize_t Recv(int sockfd, void *buf, size_t len, int flags);
+void    Recv(s_server *server);
 void    Connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 void    Send(int sockfd, const void *buf, size_t len, int flags);
+void    waitForEvents(s_server *server);
+void    closeAll(s_server *server);
 
 #endif
