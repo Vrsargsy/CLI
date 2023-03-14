@@ -26,11 +26,11 @@ int main(int ac, char **av)
     setsockopt(server.master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&server.option, sizeof(server.option));
     initServerStructure(&server, av[1]);
     Bind(server.master_socket, (struct sockaddr *)&(server.addr), server.addrLen); // Bind sockets
-    Listen(server.master_socket, MAX_CLIENTS);
     //fd_set
+    Listen(server.master_socket, MAX_CLIENTS);
+    server.clients[clientID] = Accept(server.master_socket, (struct sockaddr *)&(server.addr), &(server.addrLen)); 
     while(1)
     {
-        server.clients[clientID] = Accept(server.master_socket, (struct sockaddr *)&(server.addr), &(server.addrLen)); 
         write(1, "<Server>: ", 10);
         server.valRead[clientID] = Recv(server.clients[clientID], server.buffer, BUFFER_SIZE, 0);
         printf("Received msg: %s\n", server.buffer);
