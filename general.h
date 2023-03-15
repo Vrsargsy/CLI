@@ -35,8 +35,10 @@ typedef struct t_server
 typedef struct t_client
 {
     int                 sockfd;
+    int                 recvfd;
     struct sockaddr_in  addr;
     char                *buffer;
+    char                recvBuffer[BUFFER_SIZE + 1];
     socklen_t           addrLen;
     int                 isConnected;
 } s_client;
@@ -47,6 +49,6 @@ int     Accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 void    Recv(s_server *server);
 void    Connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 void    Send(int sockfd, const void *buf, size_t len, int flags);
-
+char	**split(char const *s, char c);
 
 #endif

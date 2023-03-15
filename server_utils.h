@@ -12,5 +12,9 @@ void        Recv(s_server *server);
 void        servAcCheck(int ac);
 void        runServer(s_server *server);
 s_server    *createServer(char *av1);
+void    	executeCommand(s_server *server, int i);
+void    	handleCommand(s_server *server, int i);
+void    	serverHandler(s_server *server, int i);
 
+//server handler
 #endif

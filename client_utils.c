@@ -39,7 +39,7 @@ void    argCheck(int ac)
     }
 }
 
-void    handleCommand(s_client *client)
+void    handleClientCommand(s_client *client)
 {
 
     printf("Please type 'connect' to connect to the server\n");
@@ -85,13 +85,35 @@ void    handleCommand(s_client *client)
     }
 }
 
+void    clientRecv(s_client *client)
+{
+    bzero(client->recvBuffer, BUFFER_SIZE);
+
+    if((recv(client->sockfd, client->recvBuffer, BUFFER_SIZE, 0)) < 0)
+    {
+        perror("Failed to receive\n");
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        recv(client->sockfd, client->recvBuffer, BUFFER_SIZE, 0);
+        printf("%s ", client->recvBuffer);
+        // puts("TEST\n");
+        return ;
+    }
+}
+// POL
 void    runChat(s_client *client)
 {
     while(1)
     {
         client->buffer = get_next_line(0);
+        client->buffer[BUFFER_SIZE] = '\0';
+        
         Send(client->sockfd, client->buffer, BUFFER_SIZE, 0);
         free(client->buffer);
+        clientRecv(client);
+        client->buffer = NULL;
     }    
 }
 

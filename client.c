@@ -4,7 +4,7 @@ int main(int ac, char **av)
 {
     argCheck(ac);
     s_client *client = allocateAndInitClient(av[1],av[2]);
-    handleCommand(client);    
+    handleClientCommand(client);
     runChat(client);
     closeAndFree(client);
 

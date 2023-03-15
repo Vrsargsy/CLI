@@ -34,7 +34,7 @@ void Recv(s_server *server)
             if(recvVal < 0)
             {
                 perror("Failed to receive value\n");
-                exit(EXIT_FAILURE);
+                // exit(EXIT_FAILURE);
             }
             else if (recvVal == 0)
             {
@@ -48,7 +48,10 @@ void Recv(s_server *server)
             else
             {
                 server->buffer[recvVal] = '\0';
-                printf("Received from [%d]: %s\n", server->clients[i], server->buffer);
+                //command handler
+                handleCommand(server, i);
+               // if (){}
+               // printf("Received from [%d]: %s\n", server->clients[i], server->buffer);
             }
         }
     }
@@ -135,4 +138,103 @@ void    runServer(s_server *server)
         waitForEvents(server);
         Recv(server);
     }
+}
+
+// Server Handler connect disconnect shell:
+
+void    serverHandler(s_server *server, int i)
+{
+    char    errorMsg[50] = "You are connected now. You can't connect again.\n";
+    if(strcmp(server->buffer, "disconnect") == 0)
+    {
+        close(server->clients[i]);
+        server->poll_fds[i + 1] = server->poll_fds[server->clientID];
+        server->clients[i] = server->clients[i - 1];
+        server->clientID--;
+        printf("[%d]: Client disconnected\n", server->clients[i]);
+    }
+    else
+    {
+        Send(server->clients[i], &errorMsg, 50, 0);
+    }
+}
+
+void    handleCommand(s_server *server, int i)
+{
+    char    **buff = split(server->buffer, ' ');
+
+    if (!buff)
+    {
+        puts("buff is empty\n");
+        return ;
+    }
+    if ((strcmp(buff[0], "disconnect") == 0 || strcmp(buff[0], "connect") == 0) && buff[1] == NULL)
+    {
+        serverHandler(server, i);
+    }
+    else if (strcmp(buff[0], "shell") == 0)
+    {
+        if(!buff[1])
+        {
+            perror("Error: command is empty. Example: shell \"ls -la\" \n");
+            free(buff[0]);
+            return ;
+        }
+        else if (buff[1] && buff[2] == NULL)
+        {
+            executeCommand(server, i);
+            return ;
+        }
+        else
+        {
+            perror("Error: Invalid input. Example: shell \"ls -la\" \n");
+            return ;
+        }
+    }
+    else
+    {
+        printf("Received from [%d]: %s\n", server->clients[i], server->buffer);
+    }
+
+    // for(int i = 0; i <)
+    // buff = NULL;
+    
+    return ;
+}
+
+void    executeCommand(s_server *server, int i) //shell "ls" 
+{
+    FILE    *output = NULL;
+    char    **tok = split(server->buffer, ' ');
+    printf("TOK 1:%s  2:%s\n", tok[0], tok[1]);
+    char    errorMsg[] = "Failed to execute command\n";
+    //char    buffer[BUFFER_SIZE + 1];
+    //buffer[BUFFER_SIZE] = '\0';
+    
+    output = popen(tok[1], "r+");
+    // puts("ERROR HANDLE\n");
+    if (output == NULL)
+    {
+        Send(server->clients[i], &errorMsg, strlen(errorMsg), 0);
+    }
+    else
+    {
+        while (fgets(server->buffer,BUFFER_SIZE,output) != NULL)
+        {
+           //int rd = read((int)output, server->buffer, BUFFER_SIZE);
+           // if(rd <= 0)
+            //    break ;
+            Send(server->clients[i], server->buffer, BUFFER_SIZE, 0);
+            //bzero(server->buffer, BUFFER_SIZE);
+        }
+        /* int rd = read(output, server->buffer, BUFFER_SIZE);
+        if(rd <= 0)
+            break ;
+        Send(server->clients[i], server->buffer, BUFFER_SIZE, 0);
+        bzero(server->buffer, BUFFER_SIZE); */
+        
+        
+    }
+    pclose(output);
+    output = NULL;
 }
