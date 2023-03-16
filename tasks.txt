@@ -1,1 +1,0 @@
-Handle CTRL+C in server handler;
