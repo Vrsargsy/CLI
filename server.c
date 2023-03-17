@@ -45,6 +45,7 @@ char *exec(char *command)
         }
     }
     result[ri] = '\0';
+    puts(result);
     pclose(pipe);
     return result;
 }
@@ -75,7 +76,7 @@ int main(int argc, char *argv[])
     // bind the socket to an IP address and port
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(12345);
+    address.sin_port = htons(7778);
     if (bind(server_socket, (struct sockaddr *)&address, sizeof(address)) < 0) {
         perror("bind failed");
         exit(EXIT_FAILURE);
@@ -149,7 +150,7 @@ int main(int argc, char *argv[])
                     send(client_sockets[i], toClient, strlen(toClient), 0);
                     free(toClient);
                     toClient = NULL;
-                    bzero(buffer, strlen(buffer));
+                    bzero(buffer, strlen(buffer) - 1);
                 }
             }
         }

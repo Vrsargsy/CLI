@@ -13,7 +13,7 @@
 #define RESET "\033[0m"
 
 #define SERVER_IP "127.0.0.1"
-#define SERVER_PORT 12345
+#define SERVER_PORT 7778
 #define BUFFER_SIZE 1024
 
 
