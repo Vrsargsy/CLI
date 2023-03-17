@@ -12,33 +12,38 @@
 # define RED   "\033[0;31m"
 # define RESET "\033[0m"
 
-char *exec(char *command) {
-   char buffer[BUFFER_SIZE + 1];
-   char *result = malloc(BUFFER_SIZE);
+char *exec(char *command)
+{
+
+   char buffer[BUFFER_SIZE + 1] = {0};
+   char *result = malloc(BUFFER_SIZE + 1);
    unsigned int  i = 0;
    unsigned int  ri = 0;
-   bzero(buffer, strlen(buffer));
+   
+   result[BUFFER_SIZE] = '\0';
    bzero(result, BUFFER_SIZE);
-   // Open pipe to file
+
    FILE* pipe = popen(command, "r");
    if (!pipe) {
       return "popen failed!";
    }
-   buffer[BUFFER_SIZE] = '\0';
 
-    int cnt = 0;
    // read till end of process:
-        while ( (buffer[i] = fgetc(pipe)) != EOF)
+    while ( (buffer[i] = fgetc(pipe)) != EOF)
+    {
+        result[ri] = buffer[i];
+        i++;
+        ri++;
+        if (i == BUFFER_SIZE)
         {
-            result[ri] = buffer[i];
-            i++;
-            ri++;
-            if (i = BUFFER_SIZE)
-            {
-                bzero(buffer, strlen(buffer));
-                i = 0;
-            }
+            bzero(buffer, strlen(buffer));
+            i = 0;
+            if((realloc(result, BUFFER_SIZE + 1)) != NULL)
+                continue ;
+            else
+                return NULL;
         }
+    }
     result[ri] = '\0';
     pclose(pipe);
     return result;
@@ -46,7 +51,8 @@ char *exec(char *command) {
 
 #define MAX_CLIENTS 10
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     int server_socket, new_socket, i, activity, addrlen, valread;
     int client_sockets[MAX_CLIENTS] = {0};
     struct sockaddr_in address;
@@ -61,7 +67,7 @@ int main(int argc, char *argv[]) {
     
     // set socket options
     int opt = 1;
-    if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+    if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
         perror("setsockopt failed");
         exit(EXIT_FAILURE);
     }
@@ -118,28 +124,35 @@ int main(int argc, char *argv[]) {
         }
         
         // check for incoming data from clients
-        for (i = 0; i < MAX_CLIENTS; i++) {
-            if (client_sockets[i] > 0 && fds[i + 1].revents & POLLIN) {
+        for (i = 0; i < MAX_CLIENTS; i++)
+        {
+            if (client_sockets[i] > 0 && fds[i + 1].revents & POLLIN)
+            {
                 valread = read(client_sockets[i], buffer, BUFFER_SIZE);
-            
-            if (valread == 0) {
-                // client disconnected
-                printf("%sClient[%d] disconnected%s\n", RED, client_sockets[i+1],RESET);
-                close(client_sockets[i]);
-                client_sockets[i] = 0;
-                fds[i + 1].fd = -1;
-            } else {
-                // process incoming data
-                printf("%sClient[%d]: %s%s\n", RED, i + 1, buffer,RESET);
-                toClient = exec(buffer);
-                // echo the data back to the client
-                send(client_sockets[i], toClient, strlen(toClient), 0);
-                free(toClient);
-                toClient = NULL;
-                bzero(buffer, strlen(buffer));
+                if (valread == 0)
+                {
+                    // client disconnected
+                    printf("%sClient[%d] disconnected%s\n", RED, client_sockets[i+1],RESET);
+                    close(client_sockets[i]);
+                    client_sockets[i] = 0;
+                    fds[i + 1].fd = -1;
+                }
+                else
+                {
+                    // process incoming data
+                    printf("%sClient[%d]: %s%s\n", RED, i + 1, buffer,RESET);
+
+                    toClient = exec(buffer); // ok
+                    printf("len: %lu\n", strlen(toClient));
+                    // echo the data back to the client
+                    // send(client_sockets[i],sendSize,strlen(sendSize),0);
+                    send(client_sockets[i], toClient, strlen(toClient), 0);
+                    free(toClient);
+                    toClient = NULL;
+                    bzero(buffer, strlen(buffer));
+                }
             }
         }
-    }
     }
     return 0;
 }

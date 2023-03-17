@@ -5,6 +5,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <readline/history.h>
+#include <readline/readline.h>
 
 #define GREEN "\e[01;32m"
 #define RED   "\033[0;31m"
@@ -14,11 +16,22 @@
 #define SERVER_PORT 12345
 #define BUFFER_SIZE 1024
 
-int main(int argc, char *argv[]) {
-    int client_socket, valread;
+
+//make buffer dynamic.
+
+
+int main(int argc, char *argv[])
+{
     struct sockaddr_in address;
-    char buffer[BUFFER_SIZE] = {0};
-    
+    int client_socket;
+    ssize_t recVal;
+
+    char    *readBuff = (char*)malloc(sizeof(BUFFER_SIZE) + 1);
+    char    *bigData = (char*)malloc(sizeof(BUFFER_SIZE) + 1);
+    char    *rl_buff = NULL;
+    readBuff[BUFFER_SIZE] = '\0';
+    bigData[BUFFER_SIZE] = '\0';
+
     // create a TCP socket
     if ((client_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
         perror("socket failed");
@@ -37,23 +50,46 @@ int main(int argc, char *argv[]) {
     }
     
     printf("Connected to server %s:%d\n", SERVER_IP, SERVER_PORT);
-    
-    // main loop
-    while (1) {
-        // read input from the user
-        printf(GREEN"<CLIENT> ");
-        fgets(buffer, BUFFER_SIZE, stdin);
-        buffer[strlen(buffer) - 1] = '\0';
-        
-        // send the message to the server
-        send(client_socket, buffer, strlen(buffer), 0);
-        
-        // receive a response from the server
-        valread = read(client_socket, buffer, BUFFER_SIZE);
-        if(valread == 0)
-            continue;
-        printf("             %s<SERVER>\n%s %s\n", RED, buffer, RESET);
+
+    while(1)
+    {
+        rl_buff = readline("<CLIENT> ");
+        if(rl_buff)
+            add_history(rl_buff);
+        else
+            return (0);
+        if (*rl_buff)
+        {
+            send(client_socket, rl_buff, strlen(rl_buff), 0);
+            /*
+            while ((nDataLength = recv(Socket, buffer, sizeof(buffer), 0)) > 0) {
+                myString.append(buffer, nDataLength);
+            }
+            */
+
+            while( (recVal = recv(client_socket, readBuff, BUFFER_SIZE, 0) ) > 0)
+            {
+                strncat(bigData, readBuff,recVal);
+                if(recVal > 1024)
+                {
+                    if( (realloc(bigData, BUFFER_SIZE) ) != NULL)
+                        continue ;
+                    else
+                    {
+                        perror("Failed to allocate memory\n");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                puts(bigData);
+                printf("len: %lu\n", strlen(bigData));
+            }
+            puts(bigData);
+            free(bigData);
+            bigData = NULL;
+            bzero(rl_buff, strlen(rl_buff));
+            bzero(readBuff, strlen(readBuff));
+        }
     }
-    
+
     return 0;
 }
