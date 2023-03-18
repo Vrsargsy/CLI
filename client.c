@@ -13,7 +13,7 @@
 #define RESET "\033[0m"
 
 #define SERVER_IP "127.0.0.1"
-#define SERVER_PORT 7778
+#define SERVER_PORT 12345
 #define BUFFER_SIZE 1024
 
 
@@ -26,11 +26,10 @@ int main(int argc, char *argv[])
     int client_socket;
     ssize_t recVal;
 
-    char    *readBuff = (char*)malloc(sizeof(BUFFER_SIZE) + 1);
-    char    *bigData = (char*)malloc(sizeof(BUFFER_SIZE) + 1);
+    char    *readBuff = (char*)malloc(BUFFER_SIZE + 1);
+    char    *bigData;
     char    *rl_buff = NULL;
     readBuff[BUFFER_SIZE] = '\0';
-    bigData[BUFFER_SIZE] = '\0';
 
     // create a TCP socket
     if ((client_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
@@ -66,11 +65,14 @@ int main(int argc, char *argv[])
                 myString.append(buffer, nDataLength);
             }
             */
-
+            int recvSize = 0;
+            bigData = (char*)malloc(BUFFER_SIZE + 1);
             while( (recVal = recv(client_socket, readBuff, BUFFER_SIZE, 0) ) > 0)
             {
+                recvSize += recVal;
+                printf("recVal: %lu\n", recVal);
                 strncat(bigData, readBuff,recVal);
-                if(recVal > 1024)
+                if(recVal >= 1024)
                 {
                     if( (realloc(bigData, BUFFER_SIZE) ) != NULL)
                         continue ;
@@ -80,10 +82,13 @@ int main(int argc, char *argv[])
                         exit(EXIT_FAILURE);
                     }
                 }
-                puts(bigData);
-                printf("len: %lu\n", strlen(bigData));
+                if (recVal < BUFFER_SIZE)
+                {
+                    puts(bigData);
+                    printf("size: %d\n", recvSize);
+                    break;
+                }
             }
-            puts(bigData);
             free(bigData);
             bigData = NULL;
             bzero(rl_buff, strlen(rl_buff));

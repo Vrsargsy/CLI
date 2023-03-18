@@ -16,12 +16,12 @@ char *exec(char *command)
 {
 
    char buffer[BUFFER_SIZE + 1] = {0};
-   char *result = malloc(BUFFER_SIZE + 1);
+   char *result = malloc(100000 + 1);
    unsigned int  i = 0;
    unsigned int  ri = 0;
    
-   result[BUFFER_SIZE] = '\0';
-   bzero(result, BUFFER_SIZE);
+   result[100000] = '\0';
+   bzero(result, 100000);
 
    FILE* pipe = popen(command, "r");
    if (!pipe) {
@@ -29,28 +29,17 @@ char *exec(char *command)
    }
 
    // read till end of process:
-    while ( (buffer[i] = fgetc(pipe)) != EOF)
+    while ( (result[i] = fgetc(pipe)) != EOF)
     {
-        result[ri] = buffer[i];
         i++;
-        ri++;
-        if (i == BUFFER_SIZE)
-        {
-            bzero(buffer, strlen(buffer));
-            i = 0;
-            if((realloc(result, BUFFER_SIZE + 1)) != NULL)
-                continue ;
-            else
-                return NULL;
-        }
     }
-    result[ri] = '\0';
+    result[i] = '\0';
     puts(result);
     pclose(pipe);
     return result;
 }
 
-#define MAX_CLIENTS 10
+#define MAX_CLIENTS 5
 
 int main(int argc, char *argv[])
 {
@@ -76,7 +65,7 @@ int main(int argc, char *argv[])
     // bind the socket to an IP address and port
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(7778);
+    address.sin_port = htons(12345);
     if (bind(server_socket, (struct sockaddr *)&address, sizeof(address)) < 0) {
         perror("bind failed");
         exit(EXIT_FAILURE);
