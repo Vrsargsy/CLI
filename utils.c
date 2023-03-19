@@ -1,4 +1,4 @@
-#include "server.h"
+#include "SERVER/server.h"
 
 /* char *exec(char *command)
 {
