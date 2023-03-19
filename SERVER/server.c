@@ -1,18 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <poll.h>
-#include "server.h"
-
-# define GREEN "\e[01;32m"
-# define RED   "\033[0;31m"
-# define RESET "\033[0m"
-
-
+#include "./server.h"
 int main(int argc, char *argv[])
 {
     (void)argv;
@@ -45,14 +31,14 @@ int main(int argc, char *argv[])
     // bind the socket to an IP address and port
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(12345);
+    address.sin_port = htons(atoi(argv[1]));
     if (bind(server_socket, (struct sockaddr *)&address, sizeof(address)) < 0) {
         perror("bind failed");
         exit(EXIT_FAILURE);
     }
     
     // listen for incoming connections
-    if (listen(server_socket, 3) < 0) {
+    if (listen(server_socket, MAX_CLIENTS) < 0) {
         perror("listen failed");
         exit(EXIT_FAILURE);
     }
@@ -113,22 +99,29 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-
                     printf("%sClient[%d]: %s%s\n", RED, i + 1, buffer,RESET);
-                    toClient = exec(buffer); // ok
+                    if (strcmp(buffer, "disconnect") == 0)
+                    {
+                        close(client_sockets[i]);
+                        bzero(buffer, strlen(buffer));
+                        printf("%sClient[%d] disconnected%s\n", RED, client_sockets[i+1],RESET);
+                        continue ;
+                    }
+                    else if(strncmp(buffer,"connect", 7) == 0)
+                    {
+                        bzero(buffer, strlen(buffer));
+                        continue;
+                    }
+                    toClient = exec(buffer);
                     puts(toClient);
                     if (toClient)
                     {
-                        // echo the data back to the client
                         sendSize = itoa(strlen(toClient));
-
                         send(client_sockets[i],sendSize,strlen(sendSize), 0);
                         usleep(500);
                         send(client_sockets[i], toClient, strlen(toClient), 0);
-
                         free(toClient);
                         free(sendSize);
-
                         sendSize = NULL;
                         toClient = NULL;
                     }
@@ -139,4 +132,3 @@ int main(int argc, char *argv[])
     }
     return 0;
 }
-

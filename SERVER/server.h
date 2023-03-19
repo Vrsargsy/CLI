@@ -12,17 +12,16 @@
 #include <fcntl.h>
 #include<sys/types.h>
 #include<sys/stat.h>
+#include "../HELPERS/helpers.h"
 
-
-# define BUFFER_SIZE 1024
 
 # define GREEN "\e[01;32m"
 # define RED   "\033[0;31m"
 # define RESET "\033[0m"
 
-#define MAX_CLIENTS 5
+# define MAX_CLIENTS 5
+# define BUFFER_SIZE 1024
 
 char	*exec(char *command);
-char	*itoa(int n);
 
 #endif

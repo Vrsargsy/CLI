@@ -1,12 +1,12 @@
 NAME1	= server_
 NAME2	= client_
-CLIENT_SRCS = $(wildcard ./CLIENT/*.c) utils.c
-SERVER_SRCS	= $(wildcard ./SERVER/*.c) utils.c
+CLIENT_SRCS = $(wildcard ./CLIENT/*.c HELPERS/*.c)
+SERVER_SRCS	= $(wildcard ./SERVER/*.c HELPERS/*.c)
 SERVER_OBJS	= $(SERVER_SRCS:.c=.o)
 CLIENT_OBJS = $(CLIENT_SRCS:.c=.o)
 CC		= gcc
 RM		= rm -f
-CFLAGS	= -Wall -Wextra -Werror
+CFLAGS	= -Wall -Wextra -Werror -fsanitize=address -g
 
 .c.o :
 	$(CC) $(CFLAGS) -c $< -o $(<:.c=.o)
