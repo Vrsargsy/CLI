@@ -116,19 +116,22 @@ int main(int argc, char *argv[])
 
                     printf("%sClient[%d]: %s%s\n", RED, i + 1, buffer,RESET);
                     toClient = exec(buffer); // ok
-                    printf("len: %lu\n", strlen(toClient));
-                    
-                    // echo the data back to the client
-                    sendSize = itoa(strlen(toClient));
-                    send(client_sockets[i],sendSize,strlen(sendSize), 0);
-                    usleep(500);
-                    send(client_sockets[i], toClient, atoll(sendSize), 0);
-                    
-                    free(toClient);
-                    free(sendSize);
-                    
-                    sendSize = NULL;
-                    toClient = NULL;
+                    puts(toClient);
+                    if (toClient)
+                    {
+                        // echo the data back to the client
+                        sendSize = itoa(strlen(toClient));
+
+                        send(client_sockets[i],sendSize,strlen(sendSize), 0);
+                        usleep(500);
+                        send(client_sockets[i], toClient, strlen(toClient), 0);
+
+                        free(toClient);
+                        free(sendSize);
+
+                        sendSize = NULL;
+                        toClient = NULL;
+                    }
                     bzero(buffer, strlen(buffer));
                 }
             }

@@ -1,55 +1,48 @@
 #include "SERVER/server.h"
 
-/* char *exec(char *command)
-{
-
-//    char buffer[BUFFER_SIZE + 1] = {0};
-   char *result = malloc(100000 + 1);
-   unsigned int  i = 0;
-//    unsigned int  ri = 0;
-   
-   result[100000] = '\0';
-   bzero(result, 100000);
-
-   FILE* pipe = popen(command, "r");
-   if (!pipe) {
-      return "popen failed!";
-   }
-
-   // read till end of process:
-    while ( (result[i] = fgetc(pipe)) != EOF)
-    {
-        i++;
-    }
-    result[i] = '\0';
-    puts(result);
-    pclose(pipe);
-    return result;
-} */
-
 char *exec(char *cmd)
 {
-    char    *result = NULL;
-    char ch;
-    ssize_t len = 0;
-    FILE* pipe = popen(cmd, "r");
-    if (!pipe)
-        return "Failed to execute\n";
-    
-    while((fgetc(pipe)) != EOF)
-        len++;
-    
-    result = (char *)malloc(len + 1);
+    FILE *fp;
+    char *buffer = NULL;
+    size_t buffer_size = 0;
+    size_t buffer_capacity = 0;
+    size_t bytes_read;
 
-    bzero(result, len + 1);
-    result[len + 1] = '\0';
-    
-    printf(RED"Output length: %lu\n"RESET, len);
-    len = 0;
-    while((ch = fgetc(pipe)) != EOF)
-        result[len] = ch;
-    pclose(pipe);
-    return result;
+    fp = popen(cmd, "r");
+	usleep(500);
+    if (fp == NULL) {
+        printf("Error: popen() failed:\n");
+        return NULL;
+    }
+
+    while (1) {
+        if (buffer_size + BUFFER_SIZE > buffer_capacity) {
+            buffer_capacity = buffer_size + BUFFER_SIZE;
+            buffer = realloc(buffer, buffer_capacity);
+            if (buffer == NULL) {
+                printf("Error: realloc() failed:\n");
+                return NULL;
+            }
+        }
+
+        bytes_read = fread(buffer + buffer_size, 1, BUFFER_SIZE, fp);
+        if (bytes_read == 0) {
+            break;
+        }
+
+        buffer_size += bytes_read;
+    }
+
+    buffer = realloc(buffer, buffer_size + 1);
+    if (buffer == NULL) {
+        printf("Error: realloc() failed: \n");
+        return NULL;
+    }
+
+    buffer[buffer_size] = '\0';
+	
+    pclose(fp); // close the stream
+    return buffer;
 }
 
 

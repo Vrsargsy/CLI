@@ -63,45 +63,37 @@ int main(int argc, char *argv[])
             return (0);
         if (*rl_buff)
         {
-            /*  Send data size to server */
-            sendSizeToServer = itoa(strlen(rl_buff));
-            if ( (send(client_socket,sendSizeToServer,strlen(sendSizeToServer), 0) ) < 0)   
+            if ( (send(client_socket,rl_buff, strlen(rl_buff), 0) ) < 0)   
             {
-                perror("Failed to send size of message \n");
+                perror("Failed to send message \n");
                 exit(EXIT_FAILURE);
             }
+            /* Receive from server  */
             else
             {
-                usleep(500);
-                if ( (send(client_socket,rl_buff, atoll(sendSizeToServer), 0) ) < 0)   
+                if( (recv(client_socket, receiveBuffSize, BUFFER_SIZE, 0) ) > 0)
                 {
-                    perror("Failed to send message \n");
-                    exit(EXIT_FAILURE);
-                }
-            }
-            /* Receive from server  */
-            if ( (recv(client_socket, receiveBuffSize, BUFFER_SIZE, 0) ) > 0)
-            {
-                bigData = (char *)malloc(sizeof(char) * atoi(receiveBuffSize) + 1);
-                if (!bigData)
-                {
-                    perror("Failed to allocate the memory: \n");
-                    exit(EXIT_FAILURE);
-                }
-                else
-                {
-                    bigData[atoi(receiveBuffSize)] = '\0';
-                     if ( (recv(client_socket, receiveBuffSize, BUFFER_SIZE, 0) ) > 0)
-                    printf(RED "            SERVER\n%s\n"RESET, bigData);
-
+                    bigData = (char *)malloc(sizeof(char) * atoi(receiveBuffSize) + 1);
+                    if (!bigData)
+                    {
+                        perror("Failed to allocate the memory: \n");
+                        exit(EXIT_FAILURE);
+                    }
+                    bigData[strlen(receiveBuffSize)] = '\0';
+                
+                    if ( (recv(client_socket, bigData, atoi(receiveBuffSize), MSG_WAITALL) ) > 0)
+                        printf(RED "            SERVER\n%s\n"RESET, bigData);
                     free(bigData);
                     free(sendSizeToServer);
 
                     bigData = NULL;
                     sendSizeToServer = NULL;
+                    bzero(receiveBuffSize, strlen(receiveBuffSize));
                 }
             }
         }
+        else
+            continue ;
     }
     return 0;
 }
