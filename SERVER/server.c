@@ -103,6 +103,8 @@ int main(int argc, char *argv[])
                     if (strcmp(buffer, "disconnect") == 0)
                     {
                         close(client_sockets[i]);
+                        client_sockets[i] = 0;
+                        fds[i + 1].fd = -1;
                         bzero(buffer, strlen(buffer));
                         printf("%sClient[%d] disconnected%s\n", RED, client_sockets[i+1],RESET);
                         continue ;

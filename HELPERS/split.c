@@ -45,7 +45,7 @@ static size_t	nlen(char const *s, char c)
 	return (n);
 }
 
-static void	clearfree(char **sm, size_t j)
+static void	clearfree(char **sm, int j)
 {
 	while (j >= 0)
 		free(sm[j--]);
@@ -60,8 +60,6 @@ char	**split(char const *s, char c)
 
 	if (!s)
 		return (NULL);
-	/* if(nlen(s, c) == 1)
-		return NULL; */
 	sm = malloc(sizeof(char *) * (nlen(s, c) + 1));
 	if (!sm)
 		return (NULL);
