@@ -1,6 +1,6 @@
 			Instructions.
 
-IRC server, which will receive commands from clients and send output to clients.
+Server, which will receive commands from clients and send output to clients.
 it should work with max 5 clients (you can change client count in SERVER/server.h -> MAX_CLIENTS 5)
 
 Tested in macOS
